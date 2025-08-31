@@ -35,4 +35,36 @@ def car(message):
     bot.send_message(message.chat.id, f"Your new obj is: '{car}'")
     variants.append(car)
 
+banned_users = {}
+
+@bot.message_handler(commands=['ban'])
+def ban(message):
+    if message.reply_to_message: #message.reply_to_message.text
+        chat_id = message.chat.id
+        user_id = message.reply_to_message.from_user.id
+        user_name = message.reply_to_message.from_user.username
+        user_status = bot.get_chat_member(chat_id, user_id).status
+        if user_status == 'administrator' or user_status == 'creator':
+            bot.reply_to(message, "Невозможно забанить администратора.")
+        else:
+
+            if not user_id in banned_users.keys():
+                banned_users[user_id] = user_name
+                bot.reply_to(message, "LAST WARNING! if you sent ban word again, you will be banned!")
+            else:
+                # bot.ban_chat_member(chat_id, user_id)
+                bot.send_message(message.chat.id, "BANBANBAN")
+
+@bot.message_handler(commands=['banned_users'])
+def sent_banned_users(message):
+    bot.reply_to(message, *list(banned_users.values()))
+
+ban_words = ["https://", "ban"]
+@bot.message_handler(func=lambda message: True)
+def echo_message(message):
+    for w in ban_words:
+        if w in message.text:
+            sent_rep = bot.reply_to(message, "BAN")
+            ban(sent_rep)
+
 bot.polling()
